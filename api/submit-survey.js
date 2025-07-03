@@ -1,5 +1,6 @@
 import { formidable } from 'formidable';
-import { put } from '@vercel/blob';
+import fs from 'fs'; // Import thư viện 'fs' để đọc file
+import FormData from 'form-data'; // Import thư viện 'form-data'
 
 // Tắt body parser mặc định của Vercel
 export const config = {
@@ -17,48 +18,58 @@ export default async function handler(request, response) {
     const form = formidable({});
     const [fields, files] = await form.parse(request);
 
+    const imageFile = files.image?.[0];
+
+    // Bắt buộc phải có ảnh trong chế độ này
+    if (!imageFile) {
+      return response.status(400).json({ error: 'Image file is required.' });
+    }
+
     // Lấy thông tin từ các trường text
     const rating = fields.interface_rating?.[0] || 'Chưa đánh giá';
     const sources = fields.source?.join(', ') || 'Không chọn';
     const feedback = fields.feedback?.[0].trim() || 'Không có góp ý';
     
-    let imageUrl = '';
-    const imageFile = files.image?.[0];
+    // Định dạng nội dung tin nhắn để làm chú thích (caption) cho ảnh
+    let caption = `🔔 *Kết quả khảo sát mới!*\n\n`;
+    caption += `*1. Đánh giá:* ${rating}\n`;
+    caption += `*2. Nguồn:* ${sources}\n`;
+    caption += `*3. Góp ý:* ${feedback}`;
 
-    // Nếu có file ảnh, upload nó lên Vercel Blob
-    if (imageFile) {
-        const blob = await put(imageFile.originalFilename, imageFile, {
-            access: 'public',
-        });
-        imageUrl = blob.url; // Lấy URL công khai của ảnh
-    }
-
-    // Định dạng lại tin nhắn
-    let message = `🔔 *Có kết quả khảo sát mới!*\n\n`;
-    message += `*1. Đánh giá giao diện:*\n    - ${rating}\n\n`;
-    message += `*2. Nguồn biết đến web:*\n    - ${sources}\n\n`;
-    message += `*3. Hình ảnh đính kèm:*\n    - ${imageUrl ? `[Xem ảnh](${imageUrl})` : 'Không có'}\n\n`;
-    message += `*4. Góp ý thêm:*\n    - ${feedback}`;
+    // Tạo một FormData mới để gửi đến Telegram
+    const telegramFormData = new FormData();
+    telegramFormData.append('chat_id', process.env.CHAT_ID);
+    telegramFormData.append('caption', caption);
+    telegramFormData.append('parse_mode', 'Markdown');
     
-    // Gửi tin nhắn về Telegram
-    const botToken = process.env.BOT_TOKEN;
-    const chatId = process.env.CHAT_ID;
-
-    const telegramUrl = `https://api.telegram.org/bot${botToken}/sendMessage`;
-    await fetch(telegramUrl, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        chat_id: chatId,
-        text: message,
-        parse_mode: 'Markdown',
-      }),
+    // Thêm file ảnh vào FormData
+    // fs.createReadStream() hiệu quả hơn cho file lớn
+    telegramFormData.append('photo', fs.createReadStream(imageFile.filepath), {
+        filename: imageFile.originalFilename,
+        contentType: imageFile.mimetype,
     });
+    
+    // Gửi yêu cầu đến API sendPhoto của Telegram
+    const botToken = process.env.BOT_TOKEN;
+    const telegramUrl = `https://api.telegram.org/bot${botToken}/sendPhoto`;
+
+    const telegramResponse = await fetch(telegramUrl, {
+      method: 'POST',
+      body: telegramFormData,
+      // KHÔNG set header 'Content-Type', fetch sẽ tự động làm điều đó
+    });
+
+    const result = await telegramResponse.json();
+    if (!result.ok) {
+        // Ghi lại lỗi từ Telegram để debug
+        console.error('Telegram API Error:', result);
+        throw new Error('Failed to send photo to Telegram.');
+    }
 
     response.status(200).json({ success: true });
 
   } catch (error) {
     console.error(error);
-    response.status(500).json({ error: 'Server error processing the form.' });
+    response.status(500).json({ error: 'Server error processing the request.' });
   }
 }
