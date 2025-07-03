@@ -1,46 +1,13 @@
-<!DOCTYPE html>
-<html lang="vi">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Khảo Sát Đơn Giản</title>
-    <link rel="stylesheet" href="style.css">
-</head>
-<body>
-    <div class="survey-container">
-        <h1>Khảo sát về Trải nghiệm Người dùng</h1>
-        <p>Vui lòng dành chút thời gian để hoàn thành khảo sát dưới đây.</p>
-        <form id="surveyForm">
-            <div class="question">
-                <label>1. Bạn đánh giá giao diện của trang web này như thế nào?</label>
-                <div class="options">
-                    <label><input type="radio" name="interface_rating" value="Rất tốt" required> Rất tốt</label>
-                    <label><input type="radio" name="interface_rating" value="Tốt"> Tốt</label>
-                    <label><input type="radio" name="interface_rating" value="Bình thường"> Bình thường</label>
-                    <label><input type="radio" name="interface_rating" value="Tệ"> Tệ</label>
-                </div>
-            </div>
+<div class="question">
+    <label for="imageUpload">3. Bạn có muốn chia sẻ hình ảnh về trải nghiệm không?</label>
+    <label for="imageUpload" class="file-upload-wrapper">
+        <span>📂 Chọn ảnh...</span>
+        <span id="fileName"></span>
+    </label>
+    <input type="file" id="imageUpload" name="image" accept="image/*">
+</div>
 
-            <div class="question">
-                <label>2. Bạn biết đến trang web này từ đâu?</label>
-                <div class="options">
-                    <label><input type="checkbox" name="source" value="Bạn bè"> Bạn bè</label>
-                    <label><input type="checkbox" name="source" value="Mạng xã hội"> Mạng xã hội</label>
-                    <label><input type="checkbox" name="source" value="Tìm kiếm"> Tìm kiếm</label>
-                    <label><input type="checkbox" name="source" value="Khác"> Khác</label>
-                </div>
-            </div>
-
-            <div class="question">
-                <label for="feedback">3. Bạn có góp ý gì thêm không?</label>
-                <textarea id="feedback" name="feedback" rows="4" placeholder="Nhập góp ý của bạn..."></textarea>
-            </div>
-
-            <button type="submit" id="submitButton">Gửi kết quả</button>
-        </form>
-        <p id="status"></p>
-    </div>
-
-    <script src="script.js"></script>
-</body>
-</html>
+<div class="question">
+    <label for="feedback">4. Bạn có góp ý gì thêm không?</label>
+    <textarea id="feedback" name="feedback" rows="4" placeholder="Nhập góp ý của bạn..."></textarea>
+</div>
