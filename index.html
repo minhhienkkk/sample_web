@@ -3,56 +3,44 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gửi tin nhắn Telegram</title>
-    <style>
-        body { font-family: sans-serif; display: grid; place-content: center; height: 100vh; text-align: center; }
-        textarea { width: 300px; margin-bottom: 10px; }
-        button { padding: 10px 20px; cursor: pointer; }
-    </style>
+    <title>Khảo Sát Đơn Giản</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <h2>Gửi tin nhắn đến Bot</h2>
-    <textarea id="messageInput" rows="4" placeholder="Nhập tin nhắn của bạn..."></textarea>
-    <br>
-    <button id="sendButton">Gửi tin nhắn</button>
-    <p id="status"></p>
+    <div class="survey-container">
+        <h1>Khảo sát về Trải nghiệm Người dùng</h1>
+        <p>Vui lòng dành chút thời gian để hoàn thành khảo sát dưới đây.</p>
+        <form id="surveyForm">
+            <div class="question">
+                <label>1. Bạn đánh giá giao diện của trang web này như thế nào?</label>
+                <div class="options">
+                    <label><input type="radio" name="interface_rating" value="Rất tốt" required> Rất tốt</label>
+                    <label><input type="radio" name="interface_rating" value="Tốt"> Tốt</label>
+                    <label><input type="radio" name="interface_rating" value="Bình thường"> Bình thường</label>
+                    <label><input type="radio" name="interface_rating" value="Tệ"> Tệ</label>
+                </div>
+            </div>
 
-    <script>
-        document.getElementById('sendButton').addEventListener('click', async () => {
-            const messageInput = document.getElementById('messageInput');
-            const status = document.getElementById('status');
-            const message = messageInput.value;
+            <div class="question">
+                <label>2. Bạn biết đến trang web này từ đâu?</label>
+                <div class="options">
+                    <label><input type="checkbox" name="source" value="Bạn bè"> Bạn bè</label>
+                    <label><input type="checkbox" name="source" value="Mạng xã hội"> Mạng xã hội</label>
+                    <label><input type="checkbox" name="source" value="Tìm kiếm"> Tìm kiếm</label>
+                    <label><input type="checkbox" name="source" value="Khác"> Khác</label>
+                </div>
+            </div>
 
-            if (!message) {
-                status.textContent = 'Vui lòng nhập tin nhắn!';
-                return;
-            }
+            <div class="question">
+                <label for="feedback">3. Bạn có góp ý gì thêm không?</label>
+                <textarea id="feedback" name="feedback" rows="4" placeholder="Nhập góp ý của bạn..."></textarea>
+            </div>
 
-            status.textContent = 'Đang gửi...';
+            <button type="submit" id="submitButton">Gửi kết quả</button>
+        </form>
+        <p id="status"></p>
+    </div>
 
-            try {
-                // Gọi đến Serverless Function của chúng ta
-                const response = await fetch('/api/send-message', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ message: message }),
-                });
-
-                const result = await response.json();
-
-                if (response.ok) {
-                    status.textContent = 'Gửi thành công!';
-                    messageInput.value = ''; // Xóa nội dung đã gửi
-                } else {
-                    status.textContent = `Lỗi: ${result.error}`;
-                }
-
-            } catch (error) {
-                status.textContent = 'Lỗi kết nối đến server.';
-            }
-        });
-    </script>
+    <script src="script.js"></script>
 </body>
 </html>
