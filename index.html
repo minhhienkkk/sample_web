@@ -3,53 +3,77 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Khảo Sát Đơn Giản</title>
-    <link rel="stylesheet" href="style.css">
+    <title>Gửi Ảnh Lên Telegram</title>
+    <style>
+        body { font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; background-color: #f0f2f5; }
+        .container { background: white; padding: 2rem; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); text-align: center; }
+        input[type="file"] { margin-bottom: 1rem; }
+        button { padding: 0.5rem 1rem; background-color: #0088cc; color: white; border: none; border-radius: 4px; cursor: pointer; }
+        button:disabled { background-color: #ccc; }
+        #status { margin-top: 1rem; font-weight: bold; }
+    </style>
 </head>
 <body>
-    <div class="survey-container">
-        <h1>Khảo sát về Trải nghiệm Người dùng</h1>
-        <p>Vui lòng dành chút thời gian để hoàn thành khảo sát dưới đây.</p>
-        <form id="surveyForm">
-            <div class="question">
-                <label>1. Bạn đánh giá giao diện của trang web này như thế nào?</label>
-                <div class="options">
-                    <label><input type="radio" name="interface_rating" value="Rất tốt" required> Rất tốt</label>
-                    <label><input type="radio" name="interface_rating" value="Tốt"> Tốt</label>
-                    <label><input type="radio" name="interface_rating" value="Bình thường"> Bình thường</label>
-                    <label><input type="radio" name="interface_rating" value="Tệ"> Tệ</label>
-                </div>
-            </div>
 
-            <div class="question">
-                <label>2. Bạn biết đến trang web này từ đâu?</label>
-                <div class="options">
-                    <label><input type="checkbox" name="source" value="Bạn bè"> Bạn bè</label>
-                    <label><input type="checkbox" name="source" value="Mạng xã hội"> Mạng xã hội</label>
-                    <label><input type="checkbox" name="source" value="Tìm kiếm"> Tìm kiếm</label>
-                    <label><input type="checkbox" name="source" value="Khác"> Khác</label>
-                </div>
-            </div>
-
-           <div class="question">
-    <label for="imageUpload">3. Bạn có muốn chia sẻ hình ảnh về trải nghiệm không?</label>
-    <label for="imageUpload" class="file-upload-wrapper">
-        <span>📂 Chọn ảnh...</span>
-        <span id="fileName"></span>
-    </label>
-    <input type="file" id="imageUpload" name="image" accept="image/*">
+<div class="container">
+    <h2>Chọn ảnh để gửi đến Telegram</h2>
+    <form id="uploadForm">
+        <input type="file" id="imageFile" name="imageFile" accept="image/*" required>
+        <br>
+        <button type="submit">Gửi Ảnh</button>
+    </form>
+    <div id="status"></div>
 </div>
 
-<div class="question">
-    <label for="feedback">4. Bạn có góp ý gì thêm không?</label>
-    <textarea id="feedback" name="feedback" rows="4" placeholder="Nhập góp ý của bạn..."></textarea>
-</div>
+<script>
+    const form = document.getElementById('uploadForm');
+    const statusDiv = document.getElementById('status');
+    const submitButton = form.querySelector('button');
 
-            <button type="submit" id="submitButton">Gửi kết quả</button>
-        </form>
-        <p id="status"></p>
-    </div>
+    form.addEventListener('submit', async (event) => {
+        event.preventDefault();
 
-    <script src="script.js"></script>
+        const fileInput = document.getElementById('imageFile');
+        const file = fileInput.files[0];
+
+        if (!file) {
+            statusDiv.textContent = 'Vui lòng chọn một file ảnh.';
+            statusDiv.style.color = 'red';
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('photo', file);
+
+        // Vô hiệu hóa nút gửi và hiển thị trạng thái
+        submitButton.disabled = true;
+        statusDiv.textContent = 'Đang gửi...';
+        statusDiv.style.color = 'blue';
+
+        try {
+            const response = await fetch('/api/upload', {
+                method: 'POST',
+                body: formData,
+            });
+
+            const result = await response.json();
+
+            if (response.ok) {
+                statusDiv.textContent = 'Gửi ảnh thành công!';
+                statusDiv.style.color = 'green';
+                form.reset(); // Xóa file đã chọn
+            } else {
+                throw new Error(result.message || 'Có lỗi xảy ra.');
+            }
+        } catch (error) {
+            statusDiv.textContent = `Lỗi: ${error.message}`;
+            statusDiv.style.color = 'red';
+        } finally {
+            // Kích hoạt lại nút gửi
+            submitButton.disabled = false;
+        }
+    });
+</script>
+
 </body>
 </html>
