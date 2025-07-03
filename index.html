@@ -3,17 +3,56 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Trang Web Của Tôi</title>
-    <link rel="stylesheet" href="style.css">
+    <title>Gửi tin nhắn Telegram</title>
+    <style>
+        body { font-family: sans-serif; display: grid; place-content: center; height: 100vh; text-align: center; }
+        textarea { width: 300px; margin-bottom: 10px; }
+        button { padding: 10px 20px; cursor: pointer; }
+    </style>
 </head>
 <body>
-    <header>
-        <h1>Chào mừng đến với trang web của tôi!</h1>
-    </header>
-    <main>
-        <p>Đây là một trang web đơn giản được đưa lên mạng bằng Vercel.</p>
-        <button id="myButton">Click vào đây!</button>
-    </main>
-    <script src="script.js"></script>
+    <h2>Gửi tin nhắn đến Bot</h2>
+    <textarea id="messageInput" rows="4" placeholder="Nhập tin nhắn của bạn..."></textarea>
+    <br>
+    <button id="sendButton">Gửi tin nhắn</button>
+    <p id="status"></p>
+
+    <script>
+        document.getElementById('sendButton').addEventListener('click', async () => {
+            const messageInput = document.getElementById('messageInput');
+            const status = document.getElementById('status');
+            const message = messageInput.value;
+
+            if (!message) {
+                status.textContent = 'Vui lòng nhập tin nhắn!';
+                return;
+            }
+
+            status.textContent = 'Đang gửi...';
+
+            try {
+                // Gọi đến Serverless Function của chúng ta
+                const response = await fetch('/api/send-message', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ message: message }),
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    status.textContent = 'Gửi thành công!';
+                    messageInput.value = ''; // Xóa nội dung đã gửi
+                } else {
+                    status.textContent = `Lỗi: ${result.error}`;
+                }
+
+            } catch (error) {
+                status.textContent = 'Lỗi kết nối đến server.';
+            }
+        });
+    </script>
 </body>
 </html>
